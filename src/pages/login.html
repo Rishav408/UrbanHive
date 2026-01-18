@@ -8,13 +8,147 @@
     <link rel="stylesheet" href="../styles/main.css">
     <link rel="icon" href="../assets/images/UrbanHive-Logo.png">
     <style>
+        /* Navigation */
+        .landing-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(10, 15, 28, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .nav-logo img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .nav-logo span {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: none;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .nav-links {
+                display: flex;
+            }
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-nav {
+            padding: 0.625rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary-nav {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Footer */
+        .landing-footer {
+            padding: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background: var(--bg-primary);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-content {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .footer-logo span {
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
         /* Login Specific Styles */
         .login-container {
-            min-height: 100vh;
+            min-height: calc(100vh - 72px);
             display: grid;
             grid-template-columns: 1fr;
             position: relative;
             z-index: 1;
+            margin-top: 72px;
         }
 
         @media (min-width: 1024px) {
@@ -290,13 +424,6 @@
             color: var(--text-muted);
         }
 
-        .login-footer {
-            text-align: center;
-            margin-top: 2rem;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-
         .alert {
             display: flex;
             align-items: center;
@@ -315,6 +442,22 @@
 </head>
 
 <body>
+    <!-- Navigation -->
+    <nav class="landing-nav">
+        <a href="../../index.html" class="nav-logo">
+            <img src="../assets/images/UrbanHive-Logo.png" alt="Urban Hive">
+            <span>Urban Hive</span>
+        </a>
+        <div class="nav-links">
+            <a href="../../index.html#roles">User Roles</a>
+            <a href="../../index.html#features">Features</a>
+            <a href="../../index.html#about">About</a>
+        </div>
+        <div class="nav-cta">
+            <a href="login.html" class="btn-nav btn-primary-nav">Login</a>
+        </div>
+    </nav>
+
     <div class="login-container">
         <div class="login-left">
             <div class="login-branding">
@@ -477,11 +620,20 @@
                         </div>
                     </div>
                 </div>
-
-                <p class="login-footer">&copy; 2026 Urban Hive. All rights reserved.</p>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="../assets/images/UrbanHive-Logo.png" alt="Urban Hive">
+                <span>Urban Hive</span>
+            </div>
+            <p class="footer-text">© 2026 Urban Hive. Smart Urban Living, Simplified.</p>
+        </div>
+    </footer>
 
     <script>
         // Demo users for testing
