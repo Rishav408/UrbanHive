@@ -503,7 +503,120 @@ const data = {
         completedTasks: 3,
         pendingTasks: 2,
         attendanceThisMonth: 22
-    }
+    },
+
+    amenities: [
+        {
+            id: 'AM001',
+            name: 'Clubhouse',
+            icon: '🏛️',
+            description: 'Multi-purpose hall for parties, meetings, and gatherings',
+            capacity: 80,
+            pricePerHour: 500,
+            timeslots: ['09:00-12:00', '14:00-17:00', '18:00-22:00'],
+            status: 'Available',
+            rules: 'No loud music after 10 PM. Cleaning deposit required.'
+        },
+        {
+            id: 'AM002',
+            name: 'Gymnasium',
+            icon: '🏋️',
+            description: 'Fully equipped gym with cardio and weight training zones',
+            capacity: 20,
+            pricePerHour: 0,
+            timeslots: ['06:00-09:00', '09:00-12:00', '16:00-19:00', '19:00-22:00'],
+            status: 'Available',
+            rules: 'Proper sportswear required. Wipe equipment after use.'
+        },
+        {
+            id: 'AM003',
+            name: 'Swimming Pool',
+            icon: '🏊',
+            description: 'Temperature-controlled pool with kids section',
+            capacity: 30,
+            pricePerHour: 0,
+            timeslots: ['06:00-09:00', '09:00-12:00', '16:00-19:00'],
+            status: 'Available',
+            rules: 'Swimming cap mandatory. No diving in shallow end.'
+        },
+        {
+            id: 'AM004',
+            name: 'Party Hall',
+            icon: '🎉',
+            description: 'AC banquet hall with stage, sound system, and kitchen access',
+            capacity: 120,
+            pricePerHour: 1500,
+            timeslots: ['10:00-14:00', '15:00-19:00', '19:00-23:00'],
+            status: 'Available',
+            rules: 'Advance booking required. Security deposit ₹5,000.'
+        },
+        {
+            id: 'AM005',
+            name: 'Guest Room',
+            icon: '🛏️',
+            description: 'Furnished guest rooms for visitors with AC and attached bath',
+            capacity: 2,
+            pricePerHour: 300,
+            timeslots: ['Check-in: 12:00', 'Check-out: 11:00'],
+            status: 'Occupied',
+            rules: 'Max 2 nights per booking. ID proof of guest required.'
+        }
+    ],
+
+    amenityBookings: [
+        {
+            id: 'AB001',
+            amenityId: 'AM001',
+            amenityName: 'Clubhouse',
+            residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            date: '2026-01-25',
+            timeslot: '18:00-22:00',
+            purpose: 'Birthday Party',
+            status: 'Confirmed',
+            amount: 2000
+        },
+        {
+            id: 'AB002',
+            amenityId: 'AM004',
+            amenityName: 'Party Hall',
+            residentId: 'R002',
+            residentName: 'Anjali Mehta',
+            flatNo: 'B-202',
+            date: '2026-02-14',
+            timeslot: '19:00-23:00',
+            purpose: 'Anniversary Celebration',
+            status: 'Confirmed',
+            amount: 6000
+        },
+        {
+            id: 'AB003',
+            amenityId: 'AM005',
+            amenityName: 'Guest Room',
+            residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            date: '2026-01-18',
+            timeslot: 'Check-in: 12:00',
+            purpose: 'Family Visit',
+            status: 'Completed',
+            amount: 600
+        },
+        {
+            id: 'AB004',
+            amenityId: 'AM002',
+            amenityName: 'Gymnasium',
+            residentId: 'R003',
+            residentName: 'Vikram Singh',
+            flatNo: 'C-101',
+            date: '2026-01-20',
+            timeslot: '06:00-09:00',
+            purpose: 'Personal Training',
+            status: 'Confirmed',
+            amount: 0
+        }
+    ]
 };
 
 // Helper functions
