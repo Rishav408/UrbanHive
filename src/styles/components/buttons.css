@@ -14,6 +14,8 @@
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    min-height: 44px;
+    touch-action: manipulation;
 }
 
 .btn::before {
@@ -27,8 +29,10 @@
     transition: left 0.5s;
 }
 
-.btn:hover::before {
-    left: 100%;
+@media (hover: hover) {
+    .btn:hover::before {
+        left: 100%;
+    }
 }
 
 /* Primary Button */
@@ -39,13 +43,16 @@
     box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
+@media (hover: hover) {
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
+    }
 }
 
 .btn-primary:active {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 /* Outline Button */
@@ -55,10 +62,16 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.btn-outline:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
+@media (hover: hover) {
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-outline:active {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* Ghost Button */
@@ -68,9 +81,15 @@
     border: none;
 }
 
-.btn-ghost:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
+@media (hover: hover) {
+    .btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+    }
+}
+
+.btn-ghost:active {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /* Danger Button */
@@ -81,9 +100,11 @@
     box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
 }
 
-.btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5);
+@media (hover: hover) {
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5);
+    }
 }
 
 /* Success Button */
@@ -94,22 +115,24 @@
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
 }
 
-.btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+@media (hover: hover) {
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+    }
 }
 
 /* Icon Button */
 .btn-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border-radius: var(--radius-sm);
 }
 
 .btn-icon.sm {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
 }
 
 .btn-icon.lg {
@@ -121,11 +144,13 @@
 .btn.sm {
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
+    min-height: 36px;
 }
 
 .btn.lg {
     padding: 1rem 2rem;
     font-size: 1rem;
+    min-height: 48px;
 }
 
 .btn-block {
@@ -159,8 +184,8 @@
 /* Floating Action Button */
 .fab {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    bottom: calc(1.5rem + var(--safe-bottom, 0px));
+    right: 1.5rem;
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -176,11 +201,17 @@
     z-index: 50;
 }
 
-.fab:hover {
-    transform: scale(1.1) rotate(90deg);
-    box-shadow:
-        0 12px 32px rgba(59, 130, 246, 0.5),
-        0 0 60px rgba(59, 130, 246, 0.3);
+@media (hover: hover) {
+    .fab:hover {
+        transform: scale(1.1) rotate(90deg);
+        box-shadow:
+            0 12px 32px rgba(59, 130, 246, 0.5),
+            0 0 60px rgba(59, 130, 246, 0.3);
+    }
+}
+
+.fab:active {
+    transform: scale(0.95);
 }
 
 /* Button Group */
@@ -188,6 +219,7 @@
     display: inline-flex;
     border-radius: var(--radius-md);
     overflow: hidden;
+    flex-wrap: wrap;
 }
 
 .btn-group .btn {

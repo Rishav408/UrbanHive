@@ -324,28 +324,58 @@
     animation-delay: 0.5s;
 }
 
-/* Hover Transition Classes */
+/* Hover Transition Classes — desktop only */
 .hover-lift {
     transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
-.hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+@media (hover: hover) {
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
 }
 
 .hover-scale {
     transition: transform var(--transition-normal);
 }
 
-.hover-scale:hover {
-    transform: scale(1.02);
+@media (hover: hover) {
+    .hover-scale:hover {
+        transform: scale(1.02);
+    }
 }
 
 .hover-glow {
     transition: box-shadow var(--transition-normal);
 }
 
-.hover-glow:hover {
-    box-shadow: var(--shadow-glow-blue);
+@media (hover: hover) {
+    .hover-glow:hover {
+        box-shadow: var(--shadow-glow-blue);
+    }
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .animate-glow,
+    .animate-gradient,
+    .animate-pulse,
+    .animate-ping,
+    .animate-wave,
+    .animate-border-glow,
+    .animate-shimmer,
+    .animate-spin,
+    .float-animation {
+        animation: none !important;
+    }
 }

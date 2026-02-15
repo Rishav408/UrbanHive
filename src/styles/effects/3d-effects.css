@@ -1,17 +1,19 @@
 /* ===== 3D Effects & Transforms ===== */
 
-/* 3D Card with Perspective */
+/* 3D Card with Perspective — desktop only */
 .card-3d {
     transform-style: preserve-3d;
     perspective: 1000px;
     transition: transform var(--transition-normal);
 }
 
-.card-3d:hover {
-    transform: translateY(-8px) rotateX(2deg) rotateY(-2deg);
+@media (hover: hover) {
+    .card-3d:hover {
+        transform: translateY(-8px) rotateX(2deg) rotateY(-2deg);
+    }
 }
 
-/* Interactive Tilt Effect (add JS for full effect) */
+/* Interactive Tilt Effect (add JS for full effect) — desktop only */
 .tilt-effect {
     transform-style: preserve-3d;
     transition: transform var(--transition-normal);
@@ -39,7 +41,7 @@
     }
 }
 
-/* Depth Shadow */
+/* Depth Shadow — desktop only */
 .depth-shadow {
     position: relative;
 }
@@ -57,13 +59,15 @@
     transition: all var(--transition-normal);
 }
 
-.depth-shadow:hover::after {
-    bottom: -30px;
-    opacity: 0.6;
-    filter: blur(15px);
+@media (hover: hover) {
+    .depth-shadow:hover::after {
+        bottom: -30px;
+        opacity: 0.6;
+        filter: blur(15px);
+    }
 }
 
-/* 3D Button */
+/* 3D Button — desktop hover only */
 .btn-3d {
     position: relative;
     transform: translateY(0);
@@ -73,11 +77,13 @@
         0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.btn-3d:hover {
-    transform: translateY(-4px);
-    box-shadow:
-        0 8px 0 rgba(0, 0, 0, 0.3),
-        0 12px 24px rgba(0, 0, 0, 0.3);
+@media (hover: hover) {
+    .btn-3d:hover {
+        transform: translateY(-4px);
+        box-shadow:
+            0 8px 0 rgba(0, 0, 0, 0.3),
+            0 12px 24px rgba(0, 0, 0, 0.3);
+    }
 }
 
 .btn-3d:active {
@@ -87,18 +93,20 @@
         0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* 3D Icon Container */
+/* 3D Icon Container — desktop only */
 .icon-3d {
     position: relative;
     transform-style: preserve-3d;
     transition: transform var(--transition-bounce);
 }
 
-.icon-3d:hover {
-    transform: rotateY(15deg) rotateX(-10deg) scale(1.1);
+@media (hover: hover) {
+    .icon-3d:hover {
+        transform: rotateY(15deg) rotateX(-10deg) scale(1.1);
+    }
 }
 
-/* Layered Card Effect */
+/* Layered Card Effect — desktop only */
 .layered-card {
     position: relative;
 }
@@ -126,12 +134,14 @@
     z-index: -2;
 }
 
-.layered-card:hover::before {
-    transform: rotate(-4deg) translateY(12px);
-}
+@media (hover: hover) {
+    .layered-card:hover::before {
+        transform: rotate(-4deg) translateY(12px);
+    }
 
-.layered-card:hover::after {
-    transform: rotate(4deg) translateY(24px);
+    .layered-card:hover::after {
+        transform: rotate(4deg) translateY(24px);
+    }
 }
 
 /* Perspective Container */
@@ -140,7 +150,7 @@
     perspective-origin: center;
 }
 
-/* Flip Card */
+/* Flip Card — desktop only */
 .flip-card {
     transform-style: preserve-3d;
     transition: transform 0.6s;
@@ -151,8 +161,10 @@
     transition: transform 0.6s;
 }
 
-.flip-card:hover .flip-card-inner {
-    transform: rotateY(180deg);
+@media (hover: hover) {
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
 }
 
 .flip-card-front,
@@ -166,7 +178,7 @@
     transform: rotateY(180deg);
 }
 
-/* Shine Effect */
+/* Shine Effect — desktop only */
 .shine-effect {
     position: relative;
     overflow: hidden;
@@ -187,8 +199,10 @@
     transition: none;
 }
 
-.shine-effect:hover::before {
-    animation: shinePass 0.6s ease-out;
+@media (hover: hover) {
+    .shine-effect:hover::before {
+        animation: shinePass 0.6s ease-out;
+    }
 }
 
 @keyframes shinePass {
@@ -206,10 +220,39 @@
     transition: transform var(--transition-bounce);
 }
 
-.pop-effect:hover {
-    transform: scale(1.05);
+@media (hover: hover) {
+    .pop-effect:hover {
+        transform: scale(1.05);
+    }
 }
 
 .pop-effect:active {
     transform: scale(0.98);
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    .card-3d,
+    .tilt-effect,
+    .float-animation,
+    .btn-3d,
+    .icon-3d,
+    .layered-card,
+    .flip-card,
+    .flip-card-inner,
+    .shine-effect,
+    .pop-effect,
+    .depth-shadow {
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .card-3d:hover,
+    .tilt-effect:hover,
+    .btn-3d:hover,
+    .icon-3d:hover,
+    .pop-effect:hover {
+        transform: none !important;
+    }
 }

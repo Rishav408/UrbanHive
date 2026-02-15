@@ -68,10 +68,16 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html {
     scroll-behavior: smooth;
+    /* Safe area insets for notch/home-bar devices */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
 }
 
 body {
@@ -80,8 +86,14 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+}
+
+/* Prevent body scroll when sidebar is open */
+body.sidebar-open {
+    overflow: hidden;
 }
 
 /* Animated Background */
@@ -115,6 +127,7 @@ h1, h2, h3, h4, h5, h6 {
 a {
     text-decoration: none;
     color: inherit;
+    touch-action: manipulation;
 }
 
 button {
@@ -122,6 +135,19 @@ button {
     cursor: pointer;
     border: none;
     background: none;
+    touch-action: manipulation;
+}
+
+/* Prevent iOS zoom on input focus (must be ≥16px) */
+input, select, textarea {
+    font-size: 16px;
+    touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+    input, select, textarea {
+        font-size: 0.875rem;
+    }
 }
 
 /* ===== Utility Classes ===== */
@@ -160,6 +186,7 @@ button {
 .mb-6 { margin-bottom: 1.5rem; }
 .text-sm { font-size: 0.875rem; }
 .text-xs { font-size: 0.75rem; }
+.text-center { text-align: center; }
 .text-muted { color: var(--text-secondary); }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }

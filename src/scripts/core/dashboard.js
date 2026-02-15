@@ -16,26 +16,55 @@ function logout() {
     window.location.href = '../login.html';
 }
 
-// Toggle sidebar on mobile
+// Toggle sidebar on mobile — with overlay & body scroll lock
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
+    const overlay = document.querySelector('.sidebar-overlay');
 
-    sidebar.classList.toggle('open');
-    mainContent.classList.toggle('sidebar-open');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.toggle('open');
+
+    if (overlay) {
+        overlay.classList.toggle('active', isOpen);
+    }
+
+    // Lock/unlock body scroll
+    document.body.classList.toggle('sidebar-open', isOpen);
 }
 
-// Close sidebar when clicking outside on mobile
-document.addEventListener('click', function (event) {
+// Close sidebar helper
+function closeSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    const menuToggle = document.querySelector('.menu-toggle');
+    const overlay = document.querySelector('.sidebar-overlay');
 
-    if (sidebar && menuToggle) {
-        if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
-            if (window.innerWidth < 1024) {
-                sidebar.classList.remove('open');
-            }
-        }
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    document.body.classList.remove('sidebar-open');
+}
+
+// Create sidebar overlay element if it doesn't exist
+function ensureSidebarOverlay() {
+    if (!document.querySelector('.sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.addEventListener('click', closeSidebar);
+        overlay.addEventListener('touchstart', closeSidebar, { passive: true });
+        document.body.appendChild(overlay);
+    }
+}
+
+// Close sidebar on Escape key
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeSidebar();
+    }
+});
+
+// Close sidebar on resize to desktop
+window.addEventListener('resize', function () {
+    if (window.innerWidth >= 1024) {
+        closeSidebar();
     }
 });
 
@@ -88,6 +117,9 @@ document.addEventListener('click', function (event) {
 
 // Initialize dashboard
 function initDashboard(user) {
+    // Create overlay for sidebar
+    ensureSidebarOverlay();
+
     // Set user info in sidebar
     const userAvatar = document.querySelector('.user-avatar');
     const userName = document.querySelector('.user-name');
@@ -140,28 +172,16 @@ function timeAgo(dateString) {
     return 'Just now';
 }
 
-// Show toast notification
+// Show toast notification — mobile-responsive positioning
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
+    toast.className = `toast ${type}`;
     toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        padding: 1rem 1.5rem;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-elevated);
-        z-index: 100;
-        animation: slide-up 0.3s ease-out;
-    `;
 
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'fade-out 0.3s ease-out';
+        toast.style.animation = 'fadeIn 0.3s ease-out reverse';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
