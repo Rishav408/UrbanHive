@@ -99,6 +99,9 @@ const data = {
         {
             id: 'P001',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             amount: 5500,
             type: 'Maintenance',
             status: 'Pending',
@@ -107,6 +110,9 @@ const data = {
         {
             id: 'P002',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             amount: 800,
             type: 'Water',
             status: 'Paid',
@@ -116,6 +122,9 @@ const data = {
         {
             id: 'P003',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             amount: 2000,
             type: 'Parking',
             status: 'Paid',
@@ -125,10 +134,59 @@ const data = {
         {
             id: 'P004',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             amount: 5500,
             type: 'Maintenance',
             status: 'Overdue',
             dueDate: '2025-12-20'
+        },
+        {
+            id: 'P005',
+            residentId: 'R002',
+            residentName: 'Anjali Mehta',
+            flatNo: 'B-202',
+            building: 'Genesis Tower',
+            amount: 5500,
+            type: 'Maintenance',
+            status: 'Paid',
+            dueDate: '2026-01-20',
+            paidDate: '2026-01-18'
+        },
+        {
+            id: 'P006',
+            residentId: 'R002',
+            residentName: 'Anjali Mehta',
+            flatNo: 'B-202',
+            building: 'Genesis Tower',
+            amount: 800,
+            type: 'Water',
+            status: 'Pending',
+            dueDate: '2026-01-25'
+        },
+        {
+            id: 'P007',
+            residentId: 'R003',
+            residentName: 'Vikram Singh',
+            flatNo: 'C-101',
+            building: 'Horizon Heights',
+            amount: 5500,
+            type: 'Maintenance',
+            status: 'Overdue',
+            dueDate: '2025-12-20'
+        },
+        {
+            id: 'P008',
+            residentId: 'R003',
+            residentName: 'Vikram Singh',
+            flatNo: 'C-101',
+            building: 'Horizon Heights',
+            amount: 1500,
+            type: 'Parking',
+            status: 'Paid',
+            dueDate: '2026-01-01',
+            paidDate: '2025-12-30'
         }
     ],
 
@@ -136,8 +194,12 @@ const data = {
         {
             id: 'V001',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             name: 'Delivery - Amazon',
             purpose: 'Package Delivery',
+            type: 'Delivery',
             entryTime: '2026-01-15 10:30',
             exitTime: '2026-01-15 10:35',
             status: 'Out'
@@ -145,21 +207,158 @@ const data = {
         {
             id: 'V002',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             name: 'Dr. Kapoor',
             purpose: 'Medical Visit',
+            type: 'Guest',
             entryTime: '2026-01-15 14:00',
             status: 'In'
         },
         {
             id: 'V003',
             residentId: 'R001',
+            residentName: 'Rahul Sharma',
+            flatNo: 'A-404',
+            building: 'Genesis Tower',
             name: 'Swiggy Delivery',
             purpose: 'Food Delivery',
+            type: 'Delivery',
             entryTime: '2026-01-14 20:15',
             exitTime: '2026-01-14 20:18',
             status: 'Out'
+        },
+        {
+            id: 'V004',
+            residentId: 'R002',
+            residentName: 'Anjali Mehta',
+            flatNo: 'B-202',
+            building: 'Genesis Tower',
+            name: 'Priya Mehta',
+            purpose: 'Family Visit',
+            type: 'Guest',
+            entryTime: '2026-01-15 11:00',
+            status: 'In'
+        },
+        {
+            id: 'V005',
+            residentId: 'R003',
+            residentName: 'Vikram Singh',
+            flatNo: 'C-101',
+            building: 'Horizon Heights',
+            name: 'AC Repair Service',
+            purpose: 'AC Maintenance',
+            type: 'Service',
+            entryTime: '2026-01-15 09:00',
+            exitTime: '2026-01-15 11:30',
+            status: 'Out'
+        },
+        {
+            id: 'V006',
+            residentId: 'R002',
+            residentName: 'Anjali Mehta',
+            flatNo: 'B-202',
+            building: 'Genesis Tower',
+            name: 'Ola Cab - MH12AB1234',
+            purpose: 'Cab Pickup',
+            type: 'Cab',
+            entryTime: '2026-01-14 08:45',
+            exitTime: '2026-01-14 08:50',
+            status: 'Out'
+        },
+        {
+            id: 'V007',
+            residentId: 'R003',
+            residentName: 'Vikram Singh',
+            flatNo: 'C-101',
+            building: 'Horizon Heights',
+            name: 'Flipkart Delivery',
+            purpose: 'Package Delivery',
+            type: 'Delivery',
+            entryTime: '2026-01-15 16:20',
+            status: 'In'
         }
     ],
+
+    events: [
+        {
+            id: 'E001',
+            title: 'Annual General Meeting',
+            date: '2026-01-20',
+            time: '18:00',
+            location: 'Community Hall',
+            description: 'Yearly society meeting to discuss budget, maintenance plans, and elections.',
+            type: 'Meeting'
+        },
+        {
+            id: 'E002',
+            title: 'Republic Day Celebration',
+            date: '2026-01-26',
+            time: '08:00',
+            location: 'Main Garden',
+            description: 'Flag hoisting ceremony followed by cultural programs and breakfast.',
+            type: 'Festival'
+        },
+        {
+            id: 'E003',
+            title: 'Fire Safety Drill',
+            date: '2026-02-05',
+            time: '10:00',
+            location: 'All Buildings',
+            description: 'Mandatory fire safety drill and evacuation practice for all residents.',
+            type: 'Safety'
+        },
+        {
+            id: 'E004',
+            title: 'Monthly Maintenance Drive',
+            date: '2026-02-10',
+            time: '07:00',
+            location: 'Society Premises',
+            description: 'Deep cleaning, pest control, and general maintenance of common areas.',
+            type: 'Maintenance'
+        },
+        {
+            id: 'E005',
+            title: 'Kids Summer Camp Registration',
+            date: '2026-03-01',
+            time: '09:00',
+            location: 'Clubhouse',
+            description: 'Registration opens for the annual summer camp for society kids.',
+            type: 'Community'
+        }
+    ],
+
+    societySettings: {
+        name: 'Urban Hive Residency',
+        address: '42, Senapati Bapat Road, Pune, Maharashtra 411016',
+        registrationNo: 'MH/PNE/HSG/2019/4521',
+        totalUnits: 84,
+        establishedYear: 2019,
+        buildings: [
+            { name: 'Genesis Tower', floors: 14, unitsPerFloor: 4, totalUnits: 56 },
+            { name: 'Horizon Heights', floors: 7, unitsPerFloor: 4, totalUnits: 28 }
+        ],
+        amenities: [
+            { name: 'Swimming Pool', active: true },
+            { name: 'Gymnasium', active: true },
+            { name: 'Garden', active: true },
+            { name: 'Covered Parking', active: true },
+            { name: 'Clubhouse', active: true },
+            { name: 'Children Play Area', active: true },
+            { name: 'Indoor Games Room', active: false },
+            { name: 'Jogging Track', active: true },
+            { name: 'CCTV Surveillance', active: true },
+            { name: 'Power Backup', active: true }
+        ],
+        emergencyContacts: [
+            { label: 'Fire Station', number: '101' },
+            { label: 'Police Station', number: '100' },
+            { label: 'Ambulance', number: '108' },
+            { label: 'Society Plumber', number: '+91 98765 43212' },
+            { label: 'Society Electrician', number: '+91 98765 43213' }
+        ]
+    },
 
     tasks: [
         {
@@ -338,9 +537,9 @@ function formatCurrency(amount) {
 
 function formatDate(dateString) {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
     });
 }
