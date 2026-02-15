@@ -140,11 +140,7 @@ function initDashboard(user) {
         logoutBtn.addEventListener('click', logout);
     }
 
-    // Add menu toggle handler
-    const menuToggle = document.querySelector('.menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', toggleSidebar);
-    }
+    // Menu toggle is handled via onclick="toggleSidebar()" in HTML
 }
 
 // Format time ago
