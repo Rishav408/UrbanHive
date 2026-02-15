@@ -505,6 +505,121 @@ const data = {
         attendanceThisMonth: 22
     },
 
+    workerNotifications: [
+        {
+            id: 'WN001',
+            type: 'Task',
+            title: 'New Task Assigned',
+            message: 'You have been assigned "Fix Water Leakage - A-404". Priority: High.',
+            date: '2026-01-15',
+            time: '09:30 AM',
+            read: false,
+            workerId: 'W001'
+        },
+        {
+            id: 'WN002',
+            type: 'Schedule',
+            title: 'Shift Changed',
+            message: 'Your shift for tomorrow has been changed from Morning to Evening (2 PM - 10 PM).',
+            date: '2026-01-14',
+            time: '06:00 PM',
+            read: false,
+            workerId: 'W001'
+        },
+        {
+            id: 'WN003',
+            type: 'Payment',
+            title: 'Salary Credited',
+            message: 'Your salary of ₹18,500 for December 2025 has been credited to your account.',
+            date: '2026-01-05',
+            time: '11:00 AM',
+            read: true,
+            workerId: 'W001'
+        },
+        {
+            id: 'WN004',
+            type: 'Alert',
+            title: 'Emergency Drill Tomorrow',
+            message: 'Fire safety drill scheduled for Jan 20 at 10 AM. All staff must participate.',
+            date: '2026-01-19',
+            time: '03:00 PM',
+            read: false,
+            workerId: 'W001'
+        },
+        {
+            id: 'WN005',
+            type: 'Task',
+            title: 'Task Completed — Approved',
+            message: 'Your completed task "Garden Maintenance" has been reviewed and approved by the manager.',
+            date: '2026-01-16',
+            time: '04:15 PM',
+            read: true,
+            workerId: 'W001'
+        },
+        {
+            id: 'WN006',
+            type: 'Schedule',
+            title: 'Holiday Notice',
+            message: 'Society office will be closed on Jan 26 (Republic Day). Skeleton staff on duty.',
+            date: '2026-01-22',
+            time: '10:00 AM',
+            read: false,
+            workerId: 'W001'
+        }
+    ],
+
+    workerSalary: [
+        {
+            id: 'WS001',
+            workerId: 'W001',
+            month: 'January 2026',
+            basePay: 15000,
+            overtime: 2500,
+            bonus: 1000,
+            deductions: 500,
+            netPay: 18000,
+            status: 'Pending',
+            payDate: null
+        },
+        {
+            id: 'WS002',
+            workerId: 'W001',
+            month: 'December 2025',
+            basePay: 15000,
+            overtime: 3000,
+            bonus: 500,
+            deductions: 0,
+            netPay: 18500,
+            status: 'Paid',
+            payDate: '2026-01-05'
+        },
+        {
+            id: 'WS003',
+            workerId: 'W001',
+            month: 'November 2025',
+            basePay: 15000,
+            overtime: 1500,
+            bonus: 0,
+            deductions: 500,
+            netPay: 16000,
+            status: 'Paid',
+            payDate: '2025-12-05'
+        },
+        {
+            id: 'WS004',
+            workerId: 'W001',
+            month: 'October 2025',
+            basePay: 15000,
+            overtime: 2000,
+            bonus: 2000,
+            deductions: 0,
+            netPay: 19000,
+            status: 'Paid',
+            payDate: '2025-11-05'
+        }
+    ],
+
+
     amenities: [
         {
             id: 'AM001',
