@@ -1,4 +1,4 @@
-# Urban Hive - Vanilla HTML/CSS/JS Project
+# Urban Hive - Client/Server Project
 
 # Operating System Files
 .DS_Store
@@ -37,17 +37,21 @@ yarn-error.log*
 *.backup
 *~
 
-# Environment Files (if you add backend later)
+# Environment Files
 .env
 .env.local
 .env.*.local
+server/.env
+server/.env.*
+client/.env
+client/.env.*
 
 # Build Output (if you add build process later)
 dist/
 build/
 out/
 
-# Dependencies (if you add any later)
+# Dependencies
 node_modules/
 bower_components/
 
