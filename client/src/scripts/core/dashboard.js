@@ -2,7 +2,7 @@
 
 // Check authentication
 function requireAuth() {
-    const currentUser = sessionStorage.getItem('currentUser');
+    const currentUser = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
     if (!currentUser) {
         window.location.href = '../login.html';
         return null;
@@ -13,6 +13,7 @@ function requireAuth() {
 // Logout function
 function logout() {
     sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('currentUser');
     window.location.href = '../login.html';
 }
 

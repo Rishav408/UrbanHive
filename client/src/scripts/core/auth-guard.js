@@ -12,11 +12,12 @@ else if (currentPath.includes('/worker/')) requiredRole = 'worker';
 // Helper to kick user out
 function logoutAndRedirect() {
     sessionStorage.removeItem('currentUser');
+    localStorage.removeItem('currentUser');
     window.location.href = '../login.html';
 }
 
 // 1. Quick Local Check (to prevent screen flickering)
-const localSession = sessionStorage.getItem('currentUser');
+const localSession = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
 if (!localSession && requiredRole) {
     // No session at all, immediate boot
     logoutAndRedirect();
@@ -32,7 +33,7 @@ if (!localSession && requiredRole) {
 onAuthStateChanged(auth, async (firebaseUser) => {
     if (!firebaseUser) {
         // Firebase says no one is logged in
-        if (requiredRole) {
+        if (requiredRole && !localSession) {
             logoutAndRedirect();
         }
     } else {
