@@ -3,25 +3,35 @@ const cors = require('cors');
 
 const app = express();
 const { notFound, errorHandler } = require('./middleware/error');
-const authRoutes = require('./routes/authRoutes');
-const usersRoutes = require('./routes/usersRoutes');
+const apiRoutes = require('./routes');
 
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    credentials: true
-}));
+const rawOrigins = process.env.CORS_ORIGIN || '*';
+const originList = rawOrigins
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+const allowAll = originList.includes('*');
+
+const corsOptions = {
+    origin: allowAll
+        ? '*'
+        : function (origin, callback) {
+            if (!origin || originList.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error('Not allowed by CORS'));
+        },
+    credentials: !allowAll
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-app.get('/api', (req, res) => {
-    res.json({ message: 'Urban Hive API' });
-});
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', usersRoutes);
+app.use('/api', apiRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

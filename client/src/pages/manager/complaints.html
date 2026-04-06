@@ -305,25 +305,77 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'manager') {
-            window.location.href = 'login.html';
+            window.location.href = '../login.html';
         }
 
         let currentComplaintId = null;
+        let complaintsCache = [];
+        let workersCache = [];
+
+        function toUiStatus(status) {
+            const map = {
+                new: 'Open',
+                assigned: 'Assigned',
+                in_progress: 'In Progress',
+                resolved: 'Resolved',
+                closed: 'Resolved'
+            };
+            return map[status] || status;
+        }
+
+        function mapApiComplaint(c) {
+            return {
+                id: c._id,
+                residentName: c.residentId?.name || '',
+                flatNo: c.residentId?.flatNo || '',
+                category: c.title || 'Complaint',
+                description: c.description || '',
+                status: toUiStatus(c.status),
+                workerName: c.workerId?.name || '',
+                workerId: c.workerId?._id || c.workerId || '',
+                createdAt: c.createdAt
+            };
+        }
+
+        async function loadComplaints() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/complaints');
+                complaintsCache = (res.complaints || []).map(mapApiComplaint);
+            } catch (error) {
+                complaintsCache = complaintsCache;
+                showToast('API unavailable, using demo complaints.', 'info');
+            }
+        }
+
+        async function loadWorkers() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/users?role=worker');
+                workersCache = (res.users || []).map(w => ({
+                    id: w._id,
+                    name: w.name,
+                    type: w.workerType || 'Maintenance',
+                    status: 'Active'
+                }));
+            } catch (error) {
+                workersCache = workersCache;
+            }
+        }
 
         function updateStats() {
-            const open = data.complaints.filter(c => c.status === 'Open').length;
-            const progress = data.complaints.filter(c => c.status === 'In Progress' || c.status === 'Assigned').length;
-            const resolved = data.complaints.filter(c => c.status === 'Resolved').length;
+            const open = complaintsCache.filter(c => c.status === 'Open').length;
+            const progress = complaintsCache.filter(c => c.status === 'In Progress' || c.status === 'Assigned').length;
+            const resolved = complaintsCache.filter(c => c.status === 'Resolved').length;
 
             document.getElementById('openCount').textContent = open;
             document.getElementById('progressCount').textContent = progress;
             document.getElementById('resolvedCount').textContent = resolved;
-            document.getElementById('totalCount').textContent = data.complaints.length;
+            document.getElementById('totalCount').textContent = complaintsCache.length;
         }
 
         function renderComplaints(complaints) {
@@ -353,7 +405,7 @@
             const category = document.getElementById('categoryFilter').value;
             const search = document.getElementById('searchInput').value.toLowerCase();
 
-            let filtered = data.complaints;
+            let filtered = complaintsCache;
             if (status) filtered = filtered.filter(c => c.status === status);
             if (category) filtered = filtered.filter(c => c.category === category);
             if (search) filtered = filtered.filter(c =>
@@ -366,7 +418,7 @@
 
         function openAssignModal(id) {
             currentComplaintId = id;
-            const complaint = data.complaints.find(c => c.id === id);
+            const complaint = complaintsCache.find(c => c.id === id);
 
             document.getElementById('complaintDetails').innerHTML = `
                 <p><strong>ID:</strong> ${complaint.id}</p>
@@ -376,7 +428,7 @@
             `;
 
             const workerSelect = document.getElementById('workerSelect');
-            const relevantWorkers = data.workers.filter(w =>
+            const relevantWorkers = workersCache.filter(w =>
                 w.status === 'Active' &&
                 (w.type.toLowerCase() === complaint.category.toLowerCase() ||
                     w.type === 'Maintenance')
@@ -388,19 +440,30 @@
             showModal('assignModal');
         }
 
-        function assignWorker() {
+        async function assignWorker() {
             const workerId = document.getElementById('workerSelect').value;
             if (!workerId) {
                 showToast('Please select a worker', 'error');
                 return;
             }
 
-            const complaint = data.complaints.find(c => c.id === currentComplaintId);
-            const worker = data.workers.find(w => w.id === workerId);
+            const complaint = complaintsCache.find(c => c.id === currentComplaintId);
+            const worker = workersCache.find(w => w.id === workerId);
 
-            complaint.status = 'Assigned';
-            complaint.assignedTo = workerId;
-            complaint.workerName = worker.name;
+            try {
+                await UrbanHiveApi.apiPatch(`/complaints/${currentComplaintId}`, {
+                    workerId,
+                    status: 'assigned'
+                });
+                complaint.status = 'Assigned';
+                complaint.workerId = workerId;
+                complaint.workerName = worker?.name || '';
+            } catch (error) {
+                complaint.status = 'Assigned';
+                complaint.workerId = workerId;
+                complaint.workerName = worker?.name || '';
+                showToast('API unavailable, assigned locally.', 'info');
+            }
 
             hideModal('assignModal');
             filterComplaints();
@@ -410,7 +473,7 @@
 
         function viewComplaint(id) {
             currentComplaintId = id;
-            const c = data.complaints.find(c => c.id === id);
+            const c = complaintsCache.find(c => c.id === id);
 
             document.getElementById('viewModalBody').innerHTML = `
                 <div style="display: grid; gap: 1rem;">
@@ -435,9 +498,15 @@
             showModal('viewModal');
         }
 
-        function resolveComplaint() {
-            const complaint = data.complaints.find(c => c.id === currentComplaintId);
-            complaint.status = 'Resolved';
+        async function resolveComplaint() {
+            const complaint = complaintsCache.find(c => c.id === currentComplaintId);
+            try {
+                await UrbanHiveApi.apiPatch(`/complaints/${currentComplaintId}`, { status: 'resolved' });
+                complaint.status = 'Resolved';
+            } catch (error) {
+                complaint.status = 'Resolved';
+                showToast('API unavailable, updated locally.', 'info');
+            }
 
             hideModal('viewModal');
             filterComplaints();
@@ -446,9 +515,16 @@
         }
 
         // Initialize
-        updateStats();
-        renderComplaints(data.complaints);
+        (async function initPage() {
+            await loadWorkers();
+            await loadComplaints();
+            updateStats();
+            renderComplaints(complaintsCache);
+        })();
     </script>
 </body>
 
 </html>
+
+
+

@@ -1374,31 +1374,98 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'manager') window.location.href = '../login.html';
 
+        let complaintsCache = [];
+
+        function toUiStatus(status) {
+            const map = { new: 'Open', assigned: 'Assigned', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Resolved' };
+            return map[status] || status;
+        }
+
+        function mapApiComplaint(c) {
+            return {
+                id: c._id,
+                residentName: c.residentId?.name || '',
+                flatNo: c.residentId?.flatNo || '',
+                category: c.title || 'Complaint',
+                status: toUiStatus(c.status),
+                createdAt: c.createdAt
+            };
+        }
+
+        async function loadComplaints() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/complaints');
+                complaintsCache = (res.complaints || []).map(mapApiComplaint);
+            } catch (error) {
+                complaintsCache = data.complaints;
+            }
+        }
+
+        function renderComplaintsTable() {
+            document.getElementById('complaintsTable').innerHTML = complaintsCache.slice(0, 5).map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.residentName}</td>
+                    <td>${c.flatNo}</td>
+                    <td>${c.category}</td>
+                    <td>${createBadge(c.status)}</td>
+                    <td>${formatDate(c.createdAt)}</td>
+                    <td><button class="btn btn-ghost" style="padding: 0.5rem;">View</button></td>
+                </tr>
+            `).join('');
+        }
+
         function toggleSidebar() { document.querySelector('.sidebar')?.classList.toggle('open'); }
 
-        // Populate stats from data
-        document.getElementById('statResidents').textContent = data.managerStats.totalResidents;
-        document.getElementById('statWorkers').textContent = data.managerStats.totalWorkers;
-        document.getElementById('statAttendance').textContent = data.managerStats.attendanceRate + '%';
+        // Load real stats from API, fall back to dummy data
+        (async function initDashboardStats() {
+            try {
+                // Load residents count
+                const resRes = await UrbanHiveApi.apiGet('/users?role=resident');
+                const residents = resRes.users || [];
+                document.getElementById('statResidents').textContent = residents.length || data.managerStats.totalResidents;
 
-        // Render complaints table
-        document.getElementById('complaintsTable').innerHTML = data.complaints.slice(0, 5).map(c => `
-            <tr>
-                <td>${c.id}</td>
-                <td>${c.residentName}</td>
-                <td>${c.flatNo}</td>
-                <td>${c.category}</td>
-                <td>${createBadge(c.status)}</td>
-                <td>${formatDate(c.createdAt)}</td>
-                <td><button class="btn btn-ghost" style="padding: 0.5rem;">View</button></td>
-            </tr>
-        `).join('');
+                // Load workers count
+                const workerRes = await UrbanHiveApi.apiGet('/users?role=worker');
+                const workers = workerRes.users || [];
+                document.getElementById('statWorkers').textContent = workers.length || data.managerStats.totalWorkers;
+                document.getElementById('statAttendance').textContent = data.managerStats.attendanceRate + '%';
+
+                // Load payments for Maintenance Due stat
+                const payRes = await UrbanHiveApi.apiGet('/payments');
+                const payments = payRes.payments || [];
+                const pendingTotal = payments.filter(p => p.status === 'pending').reduce((s, p) => s + (p.amount || 0), 0);
+                if (pendingTotal > 0) {
+                    document.getElementById('statMaintenance').textContent = pendingTotal >= 1000
+                        ? '₹' + (pendingTotal / 1000).toFixed(1) + 'K'
+                        : '₹' + pendingTotal;
+                }
+
+                const approvedTotal = payments.filter(p => p.status === 'approved').reduce((s, p) => s + (p.amount || 0), 0);
+                if (approvedTotal > 0) {
+                    document.getElementById('statCash').textContent = approvedTotal >= 1000
+                        ? '₹' + (approvedTotal / 1000).toFixed(1) + 'K'
+                        : '₹' + approvedTotal;
+                }
+
+            } catch (err) {
+                // Fall back to dummy data
+                document.getElementById('statResidents').textContent = data.managerStats.totalResidents;
+                document.getElementById('statWorkers').textContent = data.managerStats.totalWorkers;
+                document.getElementById('statAttendance').textContent = data.managerStats.attendanceRate + '%';
+            }
+
+            // Load complaints table regardless
+            await loadComplaints();
+            renderComplaintsTable();
+        })();
 
         // Render Activity Feed
         const activities = [

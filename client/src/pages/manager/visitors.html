@@ -393,11 +393,44 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'manager') window.location.href = 'login.html';
+
+        let visitorsCache = [];
+
+        function toUiStatus(status) {
+            const map = { requested: 'Expected', approved: 'Expected', denied: 'Denied', entered: 'In' };
+            return map[status] || status;
+        }
+
+        function mapApiVisitor(v) {
+            return {
+                id: v._id,
+                residentName: v.residentId?.name || '',
+                flatNo: v.residentId?.flatNo || '',
+                building: v.building || '',
+                name: v.name || 'Visitor',
+                purpose: v.purpose || 'Guest',
+                type: v.purpose || 'Guest',
+                entryTime: (v.visitDate || '').replace('T', ' '),
+                exitTime: '',
+                status: toUiStatus(v.status)
+            };
+        }
+
+        async function loadVisitors() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/visitors');
+                visitorsCache = (res.visitors || []).map(mapApiVisitor);
+            } catch (error) {
+                visitorsCache = visitorsCache;
+                showToast('API unavailable, using demo visitors.', 'info');
+            }
+        }
 
         function getTypeBadge(type) {
             const cls = (type || 'guest').toLowerCase();
@@ -411,10 +444,10 @@
         }
 
         function updateStats() {
-            document.getElementById('totalVisitors').textContent = data.visitors.length;
-            document.getElementById('insideCount').textContent = data.visitors.filter(v => v.status === 'In').length;
-            document.getElementById('deliveryCount').textContent = data.visitors.filter(v => v.type === 'Delivery').length;
-            document.getElementById('guestCount').textContent = data.visitors.filter(v => v.type === 'Guest').length;
+            document.getElementById('totalVisitors').textContent = visitorsCache.length;
+            document.getElementById('insideCount').textContent = visitorsCache.filter(v => v.status === 'In').length;
+            document.getElementById('deliveryCount').textContent = visitorsCache.filter(v => v.type === 'Delivery').length;
+            document.getElementById('guestCount').textContent = visitorsCache.filter(v => v.type === 'Guest').length;
         }
 
         function renderVisitors(visitors) {
@@ -446,7 +479,7 @@
         }
 
         function filterVisitors() {
-            let filtered = data.visitors;
+            let filtered = visitorsCache;
             const building = document.getElementById('buildingFilter').value;
             const type = document.getElementById('typeFilter').value;
             const status = document.getElementById('statusFilter').value;
@@ -479,8 +512,8 @@
             const expectedTime = formData.get('expectedTime');
             const entryStr = expectedTime ? expectedTime.replace('T', ' ') : new Date().toISOString().slice(0, 16).replace('T', ' ');
 
-            data.visitors.unshift({
-                id: `V${String(data.visitors.length + 1).padStart(3, '0')}`,
+            visitorsCache.unshift({
+                id: `V${String(visitorsCache.length + 1).padStart(3, '0')}`,
                 residentId: resident.id,
                 residentName: resident.name,
                 flatNo: resident.flatNo,
@@ -496,9 +529,12 @@
         }
 
         // Initialize
-        updateStats();
-        renderVisitors(data.visitors);
-        populateResidents();
+        (async function initPage() {
+            await loadVisitors();
+            updateStats();
+            renderVisitors(visitorsCache);
+            populateResidents();
+        })();
     </script>
 </body>
 

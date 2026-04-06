@@ -354,12 +354,49 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'resident') window.location.href = '../login.html';
-        let myComplaints = data.complaints.filter(c => c.residentId === user.id);
+                let myComplaints = [];
+
+        function toUiStatus(status) {
+            const map = {
+                new: 'Open',
+                assigned: 'Assigned',
+                in_progress: 'In Progress',
+                resolved: 'Resolved',
+                closed: 'Resolved'
+            };
+            return map[status] || status;
+        }
+
+        function mapApiComplaint(c) {
+            return {
+                id: c._id,
+                residentId: c.residentId?._id || c.residentId,
+                residentName: c.residentId?.name || '',
+                flatNo: c.residentId?.flatNo || '',
+                category: c.title || 'Complaint',
+                description: c.description || '',
+                status: toUiStatus(c.status),
+                priority: c.priority || 'medium',
+                workerName: c.workerId?.name || '',
+                createdAt: c.createdAt
+            };
+        }
+
+        async function loadComplaints() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/complaints');
+                myComplaints = (res.complaints || []).map(mapApiComplaint);
+            } catch (error) {
+                myComplaints = data.complaints.filter(c => c.residentId === user.id);
+                showToast('API unavailable, using demo complaints.', 'info');
+            }
+        }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
@@ -397,7 +434,7 @@
                                     </div>
                                     <div>
                                         <h3 style="font-weight: 600; font-size: 1rem;">${c.category}</h3>
-                                        <p class="text-sm text-muted">${c.id} • ${formatDate(c.createdAt)}</p>
+                                        <p class="text-sm text-muted">${c.id}  ${formatDate(c.createdAt)}</p>
                                     </div>
                                 </div>
                                 ${createBadge(c.status)}
@@ -424,24 +461,35 @@
             renderComplaints(filtered);
         }
 
-        function submitComplaint() {
+        async function submitComplaint() {
             const form = document.getElementById('complaintForm');
             const formData = new FormData(form);
             const category = formData.get('category');
             const description = formData.get('description');
             if (!category || !description) { showToast('Please fill all fields', 'error'); return; }
 
-            const newComplaint = {
-                id: `C${String(data.complaints.length + 1).padStart(3, '0')}`,
-                residentId: user.id,
-                residentName: user.name,
-                flatNo: user.flatNo,
-                category, description,
-                status: 'Open',
-                createdAt: new Date().toISOString().split('T')[0]
-            };
-            data.complaints.unshift(newComplaint);
-            myComplaints = data.complaints.filter(c => c.residentId === user.id);
+            try {
+                const res = await UrbanHiveApi.apiPost('/complaints', {
+                    title: category,
+                    description,
+                    priority: 'medium'
+                });
+                const apiComplaint = mapApiComplaint(res.complaint);
+                myComplaints.unshift(apiComplaint);
+            } catch (error) {
+                const newComplaint = {
+                    id: `C${String(data.complaints.length + 1).padStart(3, '0')}`,
+                    residentId: user.id,
+                    residentName: user.name,
+                    flatNo: user.flatNo,
+                    category, description,
+                    status: 'Open',
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+                data.complaints.unshift(newComplaint);
+                myComplaints = data.complaints.filter(c => c.residentId === user.id);
+                showToast('API unavailable, saved locally.', 'info');
+            }
             hideModal('newComplaintModal');
             form.reset();
             filterComplaints();
@@ -481,9 +529,13 @@
             showModal('viewComplaintModal');
         }
 
-        updateStats();
-        renderComplaints(myComplaints);
+        (async function initPage() {
+            await loadComplaints();
+            updateStats();
+            renderComplaints(myComplaints);
+        })();
     </script>
 </body>
 
 </html>
+

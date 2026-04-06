@@ -145,7 +145,7 @@
                 <div class="page-header flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="page-title">Welcome back! ??</h1>
-                        <p class="page-subtitle" id="userFlatInfo">A-404 • Genesis Tower</p>
+                        <p class="page-subtitle" id="userFlatInfo">A-404  Genesis Tower</p>
                     </div>
                     <button class="btn btn-primary" onclick="showModal('newComplaintModal')">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -375,7 +375,7 @@
                                 <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">Emergency Contacts
                                 </p>
                                 <p style="color: var(--text-secondary); font-size: 0.875rem;">Security: +91 98765 00001
-                                    • Manager: +91 98765 00002</p>
+                                     Manager: +91 98765 00002</p>
                             </div>
                         </div>
                         <button class="btn btn-danger btn-3d">
@@ -435,6 +435,7 @@
     <!-- Toast Container -->
     <div id="toastContainer"></div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
@@ -447,9 +448,38 @@
         // Update user info
         if (user) {
             document.getElementById('userName').textContent = user.name;
-            document.getElementById('userFlatInfo').textContent = `${user.flatNo} • Genesis Tower`;
+            document.getElementById('userFlatInfo').textContent = `${user.flatNo}  Genesis Tower`;
         }
 
+                let complaintsCache = [];
+
+        function toUiStatus(status) {
+            const map = { new: 'Open', assigned: 'Assigned', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Resolved' };
+            return map[status] || status;
+        }
+
+        function mapApiComplaint(c) {
+            return {
+                id: c._id,
+                residentId: c.residentId?._id || c.residentId,
+                residentName: c.residentId?.name || '',
+                flatNo: c.residentId?.flatNo || '',
+                category: c.title || 'Complaint',
+                description: c.description || '',
+                status: toUiStatus(c.status),
+                createdAt: c.createdAt,
+                workerName: c.workerId?.name || ''
+            };
+        }
+
+        async function loadComplaints() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/complaints');
+                complaintsCache = (res.complaints || []).map(mapApiComplaint);
+            } catch (error) {
+                complaintsCache = complaintsCache.filter(c => c.residentId === user.id);
+            }
+        }
         // Sidebar toggle
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
@@ -458,7 +488,7 @@
         // Initialize dashboard
         function initDashboard() {
             // Get data
-            const myComplaints = data.complaints.filter(c => c.residentId === user.id);
+            const myComplaints = complaintsCache;
             const openComplaints = myComplaints.filter(c => c.status !== 'Resolved');
             const myPayments = data.payments.filter(p => p.residentId === user.id);
             const pendingPayments = myPayments.filter(p => p.status !== 'Paid');
@@ -525,7 +555,7 @@
         // Render complaints
         function renderComplaints() {
             const container = document.getElementById('complaintsList');
-            const myComplaints = data.complaints.filter(c => c.residentId === user.id).slice(0, 3);
+            const myComplaints = complaintsCache.slice(0, 3);
 
             if (myComplaints.length === 0) {
                 container.innerHTML = `
@@ -578,7 +608,7 @@
         }
 
         // Submit complaint
-        function submitComplaint() {
+        async function submitComplaint() {
             const form = document.getElementById('complaintForm');
             const formData = new FormData(form);
 
@@ -590,18 +620,28 @@
                 return;
             }
 
-            const newComplaint = {
-                id: `C${String(data.complaints.length + 1).padStart(3, '0')}`,
-                residentId: user.id,
-                residentName: user.name,
-                flatNo: user.flatNo,
-                category: category,
-                description: description,
-                status: 'Open',
-                createdAt: new Date().toISOString().split('T')[0]
-            };
-
-            data.complaints.unshift(newComplaint);
+            try {
+                const res = await UrbanHiveApi.apiPost('/complaints', {
+                    title: category,
+                    description,
+                    priority: 'medium'
+                });
+                const apiComplaint = mapApiComplaint(res.complaint);
+                complaintsCache.unshift(apiComplaint);
+            } catch (error) {
+                const newComplaint = {
+                    id: `C${String(complaintsCache.length + 1).padStart(3, '0')}`,
+                    residentId: user.id,
+                    residentName: user.name,
+                    flatNo: user.flatNo,
+                    category: category,
+                    description: description,
+                    status: 'Open',
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+                complaintsCache.unshift(newComplaint);
+                showToast('API unavailable, saved locally.', 'info');
+            }
 
             hideModal('newComplaintModal');
             form.reset();
@@ -633,7 +673,7 @@
                         </div>
                         <div style="flex: 1; min-width: 0;">
                             <p style="font-weight: 600; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${e.title}</p>
-                            <p class="text-sm text-muted">${e.time} • ${e.location}</p>
+                            <p class="text-sm text-muted">${e.time}  ${e.location}</p>
                         </div>
                     </div>
                 `;
@@ -651,7 +691,7 @@
             });
 
             // Recent complaints
-            data.complaints.filter(c => c.residentId === user.id).forEach(c => {
+            complaintsCache.filter(c => c.residentId === user.id).forEach(c => {
                 activities.push({ icon: '??', text: `${c.category} complaint - ${c.status}`, date: c.createdAt, color: 'rgba(245, 158, 11, 0.2)' });
             });
 
@@ -680,10 +720,17 @@
         }
 
         // Initialize
-        initDashboard();
-        renderUpcomingEvents();
-        renderActivityFeed();
+        (async function initPage() {
+            await loadComplaints();
+            initDashboard();
+            renderUpcomingEvents();
+            renderActivityFeed();
+        })();
     </script>
 </body>
 
 </html>
+
+
+
+

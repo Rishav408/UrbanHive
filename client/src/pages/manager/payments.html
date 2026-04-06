@@ -445,16 +445,52 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'manager') window.location.href = 'login.html';
 
+        let paymentsCache = [];
+
+        function toUiStatus(status) {
+            const map = { pending: 'Pending', approved: 'Paid', rejected: 'Rejected' };
+            return map[status] || status;
+        }
+
+        function mapApiPayment(p) {
+            return {
+                id: p._id,
+                residentName: p.residentId?.name || '',
+                flatNo: p.residentId?.flatNo || '',
+                type: p.type || 'Maintenance',
+                amount: p.amount || 0,
+                status: toUiStatus(p.status),
+                dueDate: p.dueDate || p.createdAt || '',
+                paidDate: p.paidDate || (p.verifiedAt ? p.verifiedAt : ''),
+                building: p.building || ''
+            };
+        }
+
+        async function loadPayments() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/payments');
+                paymentsCache = (res.payments || []).map(mapApiPayment);
+            } catch (error) {
+                paymentsCache = paymentsCache;
+                showToast('API unavailable, using demo payments.', 'info');
+            }
+        }
+
+        function renderPaymentsTable(list) {
+            renderPayments(list);
+        }
+
         function updateStats() {
-            const paid = data.payments.filter(p => p.status === 'Paid');
-            const pending = data.payments.filter(p => p.status === 'Pending');
-            const overdue = data.payments.filter(p => p.status === 'Overdue');
+            const paid = paymentsCache.filter(p => p.status === 'Paid');
+            const pending = paymentsCache.filter(p => p.status === 'Pending');
+            const overdue = paymentsCache.filter(p => p.status === 'Overdue');
 
             const totalCollected = paid.reduce((sum, p) => sum + p.amount, 0);
             const pendingTotal = pending.reduce((sum, p) => sum + p.amount, 0);
@@ -491,7 +527,7 @@
         }
 
         function filterPayments() {
-            let filtered = data.payments;
+            let filtered = paymentsCache;
             const building = document.getElementById('buildingFilter').value;
             const status = document.getElementById('statusFilter').value;
             const type = document.getElementById('typeFilter').value;
@@ -517,7 +553,7 @@
         function populatePendingPayments() {
             const select = document.getElementById('pendingPaymentSelect');
             select.innerHTML = '<option value="">Select payment</option>';
-            data.payments.filter(p => p.status === 'Pending' || p.status === 'Overdue').forEach(p => {
+            paymentsCache.filter(p => p.status === 'Pending' || p.status === 'Overdue').forEach(p => {
                 select.innerHTML += `<option value="${p.id}">${p.id} — ${p.residentName || 'Resident'} — ${p.flatNo || ''} — ${formatCurrency(p.amount)} (${p.status})</option>`;
             });
         }
@@ -530,8 +566,8 @@
             if (!resident || !formData.get('amount') || !formData.get('dueDate')) {
                 showToast('Please fill all fields', 'error'); return;
             }
-            data.payments.push({
-                id: `P${String(data.payments.length + 1).padStart(3, '0')}`,
+            paymentsCache.push({
+                id: `P${String(paymentsCache.length + 1).padStart(3, '0')}`,
                 residentId: resident.id,
                 residentName: resident.name,
                 flatNo: resident.flatNo,
@@ -545,36 +581,53 @@
             showToast('Bill generated successfully!', 'success');
         }
 
-        function recordPayment() {
+        async function recordPayment() {
             const form = document.getElementById('recordForm');
             const formData = new FormData(form);
             const paymentId = formData.get('paymentId');
-            const payment = data.payments.find(p => p.id === paymentId);
+            const payment = paymentsCache.find(p => p.id === paymentId);
             if (!payment || !formData.get('paidDate')) {
                 showToast('Please fill all fields', 'error'); return;
             }
-            payment.status = 'Paid';
-            payment.paidDate = formData.get('paidDate');
+            try {
+                await UrbanHiveApi.apiPatch(`/payments/${paymentId}/verify`, { status: 'approved' });
+                payment.status = 'Paid';
+                payment.paidDate = formData.get('paidDate');
+            } catch (error) {
+                payment.status = 'Paid';
+                payment.paidDate = formData.get('paidDate');
+                showToast('API unavailable, updated locally.', 'info');
+            }
             hideModal('recordPaymentModal'); form.reset(); filterPayments(); updateStats();
             populatePendingPayments();
             showToast('Payment recorded successfully!', 'success');
         }
 
-        function quickPay(id) {
-            const payment = data.payments.find(p => p.id === id);
+        async function quickPay(id) {
+            const payment = paymentsCache.find(p => p.id === id);
             if (payment) {
-                payment.status = 'Paid';
-                payment.paidDate = new Date().toISOString().split('T')[0];
+                try {
+                    await UrbanHiveApi.apiPatch(`/payments/${id}/verify`, { status: 'approved' });
+                    payment.status = 'Paid';
+                    payment.paidDate = new Date().toISOString().split('T')[0];
+                } catch (error) {
+                    payment.status = 'Paid';
+                    payment.paidDate = new Date().toISOString().split('T')[0];
+                    showToast('API unavailable, updated locally.', 'info');
+                }
                 filterPayments(); updateStats(); populatePendingPayments();
                 showToast(`Payment ${id} marked as paid!`, 'success');
             }
         }
 
         // Initialize
-        updateStats();
-        renderPayments(data.payments);
-        populateResidentDropdown();
-        populatePendingPayments();
+        (async function initPage() {
+            await loadPayments();
+            updateStats();
+            renderPayments(paymentsCache);
+            populateResidentDropdown();
+            populatePendingPayments();
+        })();
     </script>
 </body>
 

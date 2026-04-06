@@ -14,6 +14,8 @@ function requireAuth() {
 function logout() {
     sessionStorage.removeItem('currentUser');
     localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('authToken');
     window.location.href = '../login.html';
 }
 

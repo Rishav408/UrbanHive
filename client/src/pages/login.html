@@ -667,67 +667,39 @@
         </div>
     </footer>
 
+    <script src="../scripts/core/api.js"></script>
+
     <script>
-        const demoUsers = {
-            resident: {
-                id: 'R001',
-                name: 'Rahul Sharma',
-                email: 'resident@urbanhive.com',
-                role: 'resident',
-                flatNo: 'A-404',
-                password: 'resident123'
-            },
-            manager: {
-                id: 'M001',
-                name: 'Priya Patel',
-                email: 'manager@urbanhive.com',
-                role: 'manager',
-                designation: 'Society Secretary',
-                password: 'manager123'
-            },
-            worker: {
-                id: 'W001',
-                name: 'Vijay Kumar',
-                email: 'worker@urbanhive.com',
-                role: 'worker',
-                workerType: 'Maintenance',
-                password: 'worker123'
-            }
-        };
-
-        const demoByEmail = Object.values(demoUsers).reduce((acc, user) => {
-            acc[user.email.toLowerCase()] = user;
-            return acc;
-        }, {});
-
         function redirectByRole(role) {
             if (role === 'manager') window.location.href = 'manager/dashboard.html';
             else if (role === 'worker') window.location.href = 'worker/dashboard.html';
             else window.location.href = 'resident/dashboard.html';
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function (e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const email = document.getElementById('email').value.toLowerCase().trim();
             const password = document.getElementById('password').value;
             const errorBox = document.getElementById('loginError');
             const errorText = document.getElementById('loginErrorText');
+            errorBox.style.display = 'none';
 
-            const user = demoByEmail[email];
-            if (!user || user.password !== password) {
-                errorText.innerText = "Invalid email or password. Use demo accounts.";
-                errorBox.style.display = 'flex';
+            try {
+                const res = await UrbanHiveApi.apiPost('/auth/login', { email, password });
+                const userPayload = JSON.stringify(res.user);
+                sessionStorage.setItem('currentUser', userPayload);
+                localStorage.setItem('currentUser', userPayload);
+                sessionStorage.setItem('authToken', res.token);
+                localStorage.setItem('authToken', res.token);
+                redirectByRole(res.user.role);
                 return;
+            } catch (error) {
+                errorText.innerText = 'Login failed. Check credentials or server connection.';
+                errorBox.style.display = 'flex';
             }
-
-            const { password: _, ...userWithoutPassword } = user;
-            const userPayload = JSON.stringify(userWithoutPassword);
-            sessionStorage.setItem('currentUser', userPayload);
-            localStorage.setItem('currentUser', userPayload);
-            redirectByRole(user.role);
         });
 
-        document.getElementById('signupForm').addEventListener('submit', function (e) {
+        document.getElementById('signupForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const role = document.getElementById('signupRole').value;
             const alertBox = document.getElementById('signupAlert');
@@ -740,17 +712,27 @@
                 return;
             }
 
-            const demoUser = demoUsers[role];
-            alertBox.className = "alert alert-success";
-            alertText.innerText = `Demo mode: use ${demoUser.email} / ${demoUser.password} to sign in.`;
-            alertBox.style.display = 'flex';
-
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-                window.flipCard();
-                document.getElementById('email').value = demoUser.email;
-                document.getElementById('password').value = demoUser.password;
-            }, 1200);
+            try {
+                const res = await UrbanHiveApi.apiPost('/auth/register', {
+                    name: document.getElementById('signupName').value,
+                    email: document.getElementById('signupEmail').value,
+                    password: document.getElementById('signupPassword').value,
+                    role,
+                    flatNo: document.getElementById('signupFlatNo').value
+                });
+                alertBox.className = "alert alert-success";
+                alertText.innerText = "Account created successfully! You can now Sign In.";
+                alertBox.style.display = 'flex';
+                setTimeout(() => {
+                    alertBox.style.display = 'none';
+                    window.flipCard();
+                    document.getElementById('email').value = res.user.email;
+                }, 1500);
+            } catch (error) {
+                alertBox.className = "alert alert-error";
+                alertText.innerText = "Signup failed. Check server connection.";
+                alertBox.style.display = 'flex';
+            }
         });
 
         const currentUser = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');

@@ -318,12 +318,42 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'resident') window.location.href = '../login.html';
-        let myPayments = data.payments.filter(p => p.residentId === user.id);
+        let myPayments = [];
+
+        function toUiStatus(status) {
+            const map = { pending: 'Pending', approved: 'Paid', rejected: 'Rejected' };
+            return map[status] || status;
+        }
+
+        function mapApiPayment(p) {
+            return {
+                id: p._id,
+                residentId: p.residentId?._id || p.residentId,
+                residentName: p.residentId?.name || '',
+                flatNo: p.residentId?.flatNo || '',
+                type: p.type || 'Maintenance',
+                amount: p.amount || 0,
+                status: toUiStatus(p.status),
+                dueDate: p.dueDate || p.createdAt || '',
+                paidDate: p.paidDate || (p.verifiedAt ? p.verifiedAt : '')
+            };
+        }
+
+        async function loadPayments() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/payments');
+                myPayments = (res.payments || []).map(mapApiPayment);
+            } catch (error) {
+                myPayments = data.payments.filter(p => p.residentId === user.id);
+                showToast('API unavailable, using demo payments.', 'info');
+            }
+        }
         let currentPaymentId = null;
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -371,7 +401,7 @@
                                     </div>
                                     <div>
                                         <h3 style="font-weight: 600; font-size: 1rem;">${p.type}</h3>
-                                        <p class="text-sm text-muted">${p.id} • Due: ${formatDate(p.dueDate)}</p>
+                                        <p class="text-sm text-muted">${p.id}  Due: ${formatDate(p.dueDate)}</p>
                                     </div>
                                 </div>
                                 <div style="text-align: right;">
@@ -379,14 +409,18 @@
                                     ${createBadge(p.status)}
                                 </div>
                             </div>
-                            ${p.status !== 'Paid' ? `
-                                <div class="flex justify-end" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);">
-                                    <button class="btn btn-primary" onclick="openPayModal('${p.id}')">Pay Now</button>
-                                </div>
-                            ` : `
+                            ${p.status === 'Paid' ? `
                                 <div class="flex items-center justify-between" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);">
                                     <p class="text-sm text-muted">? Paid on ${formatDate(p.paidDate)}</p>
-                                    <button class="btn btn-ghost text-sm" onclick="viewReceipt('${p.id}')">View Receipt ?</button>
+                                    <button class="btn btn-ghost text-sm" onclick="viewReceipt('${p.id}')">View Receipt ??</button>
+                                </div>
+                            ` : p.status === 'Pending' ? `
+                                <div class="flex justify-end" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);">
+                                    <span class="text-sm text-muted">Awaiting manager verification</span>
+                                </div>
+                            ` : `
+                                <div class="flex justify-end" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06);">
+                                    <button class="btn btn-primary" onclick="openPayModal('${p.id}')">Pay Now</button>
                                 </div>
                             `}
                         </div>
@@ -436,15 +470,28 @@
             showModal('payModal');
         }
 
-        function processPayment() {
+        async function processPayment() {
             const payment = myPayments.find(p => p.id === currentPaymentId);
-            payment.status = 'Paid';
+            if (!payment) return;
+            const method = document.getElementById('paymentMethod')?.value || 'upi';
+
+            try {
+                await UrbanHiveApi.apiPost('/payments', {
+                    amount: payment.amount,
+                    mode: method,
+                    type: payment.type || 'Maintenance',
+                    dueDate: payment.dueDate || ''
+                });
+            } catch (error) {
+                showToast('API unavailable, recorded locally.', 'info');
+            }
+
+            payment.status = 'Pending';
             payment.paidDate = new Date().toISOString().split('T')[0];
             hideModal('payModal');
             filterPayments();
             updateStats();
-            showToast('Payment successful!', 'success');
-            setTimeout(() => viewReceipt(currentPaymentId), 500);
+            showToast('Payment submitted for verification!', 'success');
         }
 
         function viewReceipt(id) {
@@ -475,8 +522,11 @@
             showModal('receiptModal');
         }
 
-        updateStats();
-        renderPayments(myPayments);
+        (async function initPage() {
+            await loadPayments();
+            updateStats();
+            renderPayments(myPayments);
+        })();
     </script>
 </body>
 

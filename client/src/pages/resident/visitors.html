@@ -181,7 +181,7 @@
                         <div class="flex items-center gap-3">
                             <div class="live-dot"></div>
                             <span style="font-weight: 600;">Live Status</span>
-                            <span class="text-muted">•</span>
+                            <span class="text-muted"></span>
                             <span id="currentlyInText">0 visitors currently in society</span>
                         </div>
                     </div>
@@ -307,13 +307,43 @@
         </div>
     </div>
 
+    <script src="../../scripts/core/api.js"></script>
     <script src="../../scripts/core/data.js"></script>
     <script src="../../scripts/core/dashboard.js"></script>
     <script>
         const user = requireAuth();
         if (!user || user.role !== 'resident') window.location.href = '../login.html';
-        let myVisitors = data.visitors.filter(v => v.residentId === user.id);
+        let myVisitors = [];
         let preApprovedList = [];
+
+        function toUiStatus(status) {
+            const map = { requested: 'Expected', approved: 'Expected', denied: 'Denied', entered: 'In' };
+            return map[status] || status;
+        }
+
+        function mapApiVisitor(v) {
+            return {
+                id: v._id,
+                residentId: v.residentId?._id || v.residentId,
+                residentName: v.residentId?.name || '',
+                flatNo: v.residentId?.flatNo || '',
+                name: v.name || 'Visitor',
+                purpose: v.purpose || 'Guest',
+                status: toUiStatus(v.status),
+                entryTime: (v.visitDate || '').replace('T', ' '),
+                exitTime: ''
+            };
+        }
+
+        async function loadVisitors() {
+            try {
+                const res = await UrbanHiveApi.apiGet('/visitors');
+                myVisitors = (res.visitors || []).map(mapApiVisitor);
+            } catch (error) {
+                myVisitors = data.visitors.filter(v => v.residentId === user.id);
+                showToast('API unavailable, using demo visitors.', 'info');
+            }
+        }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
@@ -388,27 +418,44 @@
             renderVisitors(filtered);
         }
 
-        function preApproveVisitor() {
+        async function preApproveVisitor() {
             const form = document.getElementById('preApproveForm');
             const formData = new FormData(form);
             if (!formData.get('name') || !formData.get('purpose') || !formData.get('date')) { showToast('Please fill all required fields', 'error'); return; }
 
-            preApprovedList.push({
-                id: `PA${String(preApprovedList.length + 1).padStart(3, '0')}`,
-                name: formData.get('name'),
-                purpose: formData.get('purpose'),
-                date: formData.get('date'),
-                notes: formData.get('notes')
-            });
+            try {
+                const res = await UrbanHiveApi.apiPost('/visitors', {
+                    name: formData.get('name'),
+                    phone: 'N/A',
+                    visitDate: formData.get('date'),
+                    purpose: formData.get('purpose'),
+                    notes: formData.get('notes') || ''
+                });
+                const apiVisitor = mapApiVisitor(res.visitor);
+                myVisitors.unshift(apiVisitor);
+            } catch (error) {
+                preApprovedList.push({
+                    id: `PA${String(preApprovedList.length + 1).padStart(3, '0')}`,
+                    name: formData.get('name'),
+                    purpose: formData.get('purpose'),
+                    date: formData.get('date'),
+                    notes: formData.get('notes')
+                });
+                showToast('API unavailable, saved locally.', 'info');
+            }
 
             hideModal('preApproveModal');
             form.reset();
             updateStats();
+            renderVisitors(myVisitors);
             showToast('Visitor pre-approved successfully!', 'success');
         }
 
-        updateStats();
-        renderVisitors(myVisitors);
+        (async function initPage() {
+            await loadVisitors();
+            updateStats();
+            renderVisitors(myVisitors);
+        })();
     </script>
 </body>
 
