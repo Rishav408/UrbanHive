@@ -448,8 +448,53 @@
             color: var(--accent-light);
             text-decoration: underline;
         }
-    </style>
-</head>
+
+        /* Demo Quick Login */
+        .demo-login-section {
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .demo-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.875rem;
+        }
+        .demo-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.625rem;
+        }
+        .demo-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.75rem 0.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            background: rgba(255,255,255,0.04);
+            color: inherit;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .demo-btn svg { flex-shrink: 0; }
+        .demo-btn-manager { border-color: rgba(139,92,246,0.35); color: #a78bfa; }
+        .demo-btn-manager:hover { background: rgba(139,92,246,0.18); border-color: rgba(139,92,246,0.7); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139,92,246,0.25); }
+        .demo-btn-worker  { border-color: rgba(245,158,11,0.35);  color: #fbbf24; }
+        .demo-btn-worker:hover  { background: rgba(245,158,11,0.18);  border-color: rgba(245,158,11,0.7);  transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.25); }
+        .demo-btn-resident{ border-color: rgba(16,185,129,0.35);  color: #34d399; }
+        .demo-btn-resident:hover{ background: rgba(16,185,129,0.18);  border-color: rgba(16,185,129,0.7);  transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.25); }
+        .demo-btn-label { font-size: 0.7rem; opacity: 0.7; font-weight: 400; }
+    </style></head>
 
 <body>
     <!-- Navigation -->
@@ -577,7 +622,35 @@
                                 <div class="flip-toggle">
                                     Don't have an account? <a onclick="flipCard()">Sign Up</a>
                                 </div>
-                            </div>
+                                <!-- Hard-coded Demo Login Shortcuts -->
+                                <div class="demo-login-section">
+                                    <p class="demo-label">&#9889; Quick Demo Access</p>
+                                    <div class="demo-btns">
+                                        <button type="button" class="demo-btn demo-btn-manager" id="demoManager" onclick="demoLogin('manager')">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                <circle cx="12" cy="7" r="4"></circle>
+                                            </svg>
+                                            Manager
+                                            <span class="demo-btn-label">Priya Patel</span>
+                                        </button>
+                                        <button type="button" class="demo-btn demo-btn-worker" id="demoWorker" onclick="demoLogin('worker')">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                            </svg>
+                                            Worker
+                                            <span class="demo-btn-label">Vijay Kumar</span>
+                                        </button>
+                                        <button type="button" class="demo-btn demo-btn-resident" id="demoResident" onclick="demoLogin('resident')">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                            </svg>
+                                            Resident
+                                            <span class="demo-btn-label">Rahul Sharma</span>
+                                        </button>
+                                    </div>
+                                </div>                            </div>
                         </div>
                     </div>
 
@@ -670,6 +743,24 @@
     <script src="../scripts/core/api.js"></script>
 
     <script>
+        // Hard-coded demo users (no backend needed)
+        const DEMO_USERS = {
+            manager:  { id: 'M001', name: 'Priya Patel',  email: 'manager@urbanhive.com',  role: 'manager',  designation: 'Society Secretary' },
+            worker:   { id: 'W001', name: 'Vijay Kumar',  email: 'worker@urbanhive.com',   role: 'worker',   workerType: 'Maintenance' },
+            resident: { id: 'R001', name: 'Rahul Sharma', email: 'resident@urbanhive.com', role: 'resident', flatNo: 'A-404', building: 'Genesis Tower' }
+        };
+
+        function demoLogin(role) {
+            const user = DEMO_USERS[role];
+            if (!user) return;
+            const btnId = 'demo' + role.charAt(0).toUpperCase() + role.slice(1);
+            const btn = document.getElementById(btnId);
+            if (btn) { btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            setTimeout(function() { redirectByRole(role); }, 350);
+        }
+
         function redirectByRole(role) {
             if (role === 'manager') window.location.href = 'manager/dashboard.html';
             else if (role === 'worker') window.location.href = 'worker/dashboard.html';
@@ -683,6 +774,17 @@
             const errorBox = document.getElementById('loginError');
             const errorText = document.getElementById('loginErrorText');
             errorBox.style.display = 'none';
+
+            // Hard-coded credential check (works without backend server)
+            const hardcoded = {
+                'manager@urbanhive.com':  'manager123',
+                'worker@urbanhive.com':   'worker123',
+                'resident@urbanhive.com': 'resident123'
+            };
+            if (hardcoded[email] && hardcoded[email] === password) {
+                demoLogin(email.split('@')[0]);
+                return;
+            }
 
             try {
                 const res = await UrbanHiveApi.apiPost('/auth/login', { email, password });
